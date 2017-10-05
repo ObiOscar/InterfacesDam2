@@ -15,19 +15,19 @@ import javax.swing.JButton;
  */
 public class Calculadora extends javax.swing.JFrame {
 
-    String memoria1;
-    String signo;
-    String memoria2;
-    String teclaPulsada;
-    boolean primeraPulsacion = false;
-    boolean controlarBucle = false;
+    String memoria1;                //Guardará el primer numero cuando pulses un signo, o el resultado de la operación
+    String signo;                   //Guardará el signo
+    String memoria2;                //Guardará el numero que meteremos tras pulsar un signo o el igual
+    boolean primeraPulsacion = false;   //Booleano que contempla si acabamos de iniciar la aplicacion, se usa para borrar el 0 que aparece al iniciar la aplicacion
+    boolean pulsadoPrimerSigno = false;     //Controla si hemos pulsado el primer signo, lo cambiamos si nos interesa
+    boolean controlaElIgual = false;     //Controla si hemos pulsado el primer signo, lo cambiamos si nos interesa
 
     /**
      * Creates new form Calculadora2
      */
     public Calculadora() {
         super("Calculadora");
-        this.setIconImage(new ImageIcon("F:\\Desarrollo Aplicaciones Multiplataforma\\DAM2\\Interfaces\\ProyectosPruebasClase\\Calculadora\\Calculadora\\iconoCalculadora.png").getImage());
+        this.setIconImage(new ImageIcon("iconoCalculadora.png").getImage());
         initComponents();
                  
     }
@@ -319,43 +319,29 @@ public class Calculadora extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    public void keyPressed(KeyEvent evento) {
-        teclaPulsada = evento.getKeyText(evento.getKeyCode());
-    }
-
-    private void digitoPulsado() {
-        
-        txtpantalla.setText(txtpantalla.getText() + teclaPulsada);
-    }
-
     private void digitoPulsado(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_digitoPulsado
-        if(!primeraPulsacion){
+        if(!primeraPulsacion){                      //Si la primerapulsacion es falso, entra y limpia la pantalla
         txtpantalla.setText("");
         memoria1 = "";
         primeraPulsacion = true;
         }
         JButton objBt = (JButton) evt.getSource();
-        txtpantalla.setText(txtpantalla.getText() + objBt.getText());    
+        txtpantalla.setText(txtpantalla.getText() + objBt.getText());    //Muestro el objeto pulsado y se concatena
+        controlaElIgual = true;
     }//GEN-LAST:event_digitoPulsado
 
     private void jButtonPuntoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPuntoActionPerformed
-        String cadena;
-        cadena = txtpantalla.getText();
-
-        if (cadena.length() <= 0) {
-            txtpantalla.setText("0.");
-        } else {
-            if (!existePunto(txtpantalla.getText())) {
-                txtpantalla.setText(txtpantalla.getText() + ".");
-            }
-        }
+    
+        if (!existePunto(txtpantalla.getText())) {                  //Sino hay punto entra y dibuja uno, llama al siguiente metodo
+            txtpantalla.setText(txtpantalla.getText() + ".");
+        }      
     }//GEN-LAST:event_jButtonPuntoActionPerformed
 
-    public static boolean existePunto(String cadena) {
+    public static boolean existePunto(String cadena) {              
         boolean resultado = false;
 
         for (int i = 0; i < cadena.length(); i++) {
-            if (cadena.substring(i, i + 1).equals(".")) {
+            if (cadena.substring(i, i + 1).equals(".")) {           //Comprueba en el string caracter a caracter si tiene punto
                 resultado = true;
                 break;
             }
@@ -365,14 +351,16 @@ public class Calculadora extends javax.swing.JFrame {
     private void jButtonIgualActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonIgualActionPerformed
         
         String resultado;
-
+        if(controlaElIgual && !signo.equals("%")){           //ESTE CICLO CONTROLA QUE SI LE DAS A IGUAL, OPERE POR EL NUMERO GUARDADO YA EN M2, y sino tienes el signo % usando
         memoria2 = txtpantalla.getText();
+        }
 
-        if (!memoria2.equals("")) {
+        if (!memoria2.equals("") && !memoria1.equals("")) {
             resultado = calculadora(memoria1, memoria2, signo);
             memoria1 = resultado;
             txtpantalla.setText(resultado);
-            controlarBucle = false;
+            pulsadoPrimerSigno = false;
+            controlaElIgual = false;
         }
     }//GEN-LAST:event_jButtonIgualActionPerformed
 
@@ -393,7 +381,7 @@ public class Calculadora extends javax.swing.JFrame {
             resultado = Double.parseDouble(memoria1) * Double.parseDouble(memoria2);
         }
         if (signo.equals("%")) {
-            resultado = Double.parseDouble(memoria1) / Double.parseDouble(memoria2);
+            resultado = Double.parseDouble(memoria1) / Double.parseDouble(memoria2);;
         }
         respuesta = resultado.toString();
         return respuesta;
@@ -413,27 +401,22 @@ public class Calculadora extends javax.swing.JFrame {
         JButton objBt = (JButton) evt.getSource();
         String resultado;
         
-        if(controlarBucle != false){                   //Si entra ya hemos pulsado el primer signo
-            memoria2 = txtpantalla.getText();
-        
-
-        if (!memoria2.equals("")) {
-
-            resultado = calculadora(memoria1, memoria2, signo);
-                        signo = objBt.getText();
-            memoria1 = resultado;
-            txtpantalla.setText("");
-        }
-        }
-                
-        if(controlarBucle == false){
-        memoria1 = txtpantalla.getText();       //GUARDO LO QUE HAY EN LA PANTALLA DESPEUS DE PULSAR UN SIGNO
+        if(!pulsadoPrimerSigno){                    //Este buble se realiza la primera vez que pulso un signo, o cuando borro todo, o cuando doy al =
+        memoria1 = txtpantalla.getText();       
         signo = objBt.getText();
         txtpantalla.setText("");
-        controlarBucle = true;
+        pulsadoPrimerSigno = true;
         }
         
-
+        if(pulsadoPrimerSigno){                   //si hemos pulsado el signo guardo en m2 lo que hay en pantalla
+            memoria2 = txtpantalla.getText();
+            if (!memoria2.equals("")) {            //si el valor de m2 es válido
+                resultado = calculadora(memoria1, memoria2, signo);     //llamo al metodo calculadora y guardo el resultado y el nuevo signo y limpio pantalla
+                signo = objBt.getText();
+                memoria1 = resultado;
+                txtpantalla.setText("");
+            }
+        }       
     }//GEN-LAST:event_operador
 
     private void jButtonPorcientoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPorcientoActionPerformed
@@ -448,11 +431,10 @@ public class Calculadora extends javax.swing.JFrame {
     }//GEN-LAST:event_jButtonPorcientoActionPerformed
 
     private void jButtonCEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCEActionPerformed
-        txtpantalla.setText("");
+        txtpantalla.setText("");        //Limpio todo y el programa empieza como de 0
         memoria2 = "";
         memoria1 = "";
-        controlarBucle = false;
-
+        pulsadoPrimerSigno = false;
     }//GEN-LAST:event_jButtonCEActionPerformed
 
     private void txtpantallaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtpantallaActionPerformed
